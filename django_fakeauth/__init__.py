@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.contrib import auth
 
 
 class FakeBackend(object):
@@ -26,3 +28,20 @@ class FakeBackend(object):
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
+
+
+class Middleware(RemoteUserMiddleware):
+
+    header = 'AUTHENTICATION'
+
+    def process_request(self, request):
+        #if hasattr(request, 'user') and request.user is not None:
+        #    return
+
+        user = auth.authenticate(username='tarek@mozilla.com', password='toto')
+        if user:
+            request.user = user
+            auth.login(request, user)
+
+        #request.session['_auth_user_id'] = 12   # 'tarek@mozilla.com'
+        #request.session['_auth_user_backend'] = 'django_fakeauth.FakeBackend'
