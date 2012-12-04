@@ -2,9 +2,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.middleware import RemoteUserMiddleware
 from django.contrib import auth
+import base64
 
 
-class FakeBackend(object):
+class FakeAuthBackend(object):
     """
     Authenticate against the settings FAKEAUTH_TOKEN.
 
@@ -17,7 +18,7 @@ class FakeBackend(object):
     def authenticate(self, username=None, password=None):
         if settings.FAKEAUTH_TOKEN == password:
             try:
-                user = User.objects.get(username=username)
+                user = User.objects.get(email=username)
             except User.DoesNotExist:
                 return None
             return user
@@ -30,18 +31,16 @@ class FakeBackend(object):
             return None
 
 
-class Middleware(RemoteUserMiddleware):
-
-    header = 'AUTHENTICATION'
+class FakeAuthMiddleware(RemoteUserMiddleware):
 
     def process_request(self, request):
-        #if hasattr(request, 'user') and request.user is not None:
-        #    return
 
-        user = auth.authenticate(username='tarek@mozilla.com', password='toto')
-        if user:
-            request.user = user
-            auth.login(request, user)
+        if 'HTTP_AUTHORIZATION' in request.META:
+            authorization_header = request.META['HTTP_AUTHORIZATION']
+            authstring = base64.decodestring(authorization_header.split()[1])
+            username, password = authstring.split(":")
 
-        #request.session['_auth_user_id'] = 12   # 'tarek@mozilla.com'
-        #request.session['_auth_user_backend'] = 'django_fakeauth.FakeBackend'
+            user = auth.authenticate(username=username, password=password)
+            if user:
+                request.user = user
+                auth.login(request, user)
