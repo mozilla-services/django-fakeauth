@@ -9,7 +9,7 @@ classifiers = ["Programming Language :: Python",
                "Development Status :: 1 - Planning"]
 
 
-setup(name='django_fakeauth',
+setup(name='django-fakeauth',
       version='0.1',
       packages=find_packages(),
       description='A fake authentication backend for django',
