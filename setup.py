@@ -10,7 +10,7 @@ classifiers = ["Programming Language :: Python",
 
 
 setup(name='django-fakeauth',
-      version='0.1',
+      version='0.2',
       packages=find_packages(),
       description='A fake authentication backend for django',
       long_description=README,
