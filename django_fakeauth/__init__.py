@@ -36,11 +36,11 @@ class FakeAuthMiddleware(RemoteUserMiddleware):
     def process_request(self, request):
 
         if 'HTTP_AUTHORIZATION' in request.META:
-            authorization_header = request.META['HTTP_AUTHORIZATION']
-            authstring = base64.decodestring(authorization_header.split()[1])
-            username, password = authstring.split(":")
+            proto, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
+            if proto == 'Basic':
+                username, password = base64.decodestring(authstr).split(':')
 
-            user = auth.authenticate(username=username, password=password)
-            if user:
-                request.user = user
-                auth.login(request, user)
+                user = auth.authenticate(username=username, password=password)
+                if user:
+                    request.user = user
+                    auth.login(request, user)
