@@ -15,8 +15,8 @@ class FakeAuthBackend(object):
     FAKEAUTH_TOKEN = 'qlskdjlsqjdozaidnzalkn43'
     """
 
-    def authenticate(self, username=None, password=None):
-        if settings.FAKEAUTH_TOKEN == password:
+    def authenticate(self, username=None, password=None, bypass=False):
+        if settings.FAKEAUTH_TOKEN == password or bypass:
             try:
                 user = User.objects.get(email=username)
             except User.DoesNotExist:
@@ -35,12 +35,19 @@ class FakeAuthMiddleware(RemoteUserMiddleware):
 
     def process_request(self, request):
 
+        username, password, bypass = None, None, None
+
         if 'HTTP_AUTHORIZATION' in request.META:
             proto, authstr = request.META['HTTP_AUTHORIZATION'].split(' ', 1)
             if proto == 'Basic':
                 username, password = base64.decodestring(authstr).split(':')
+        elif getattr(settings, 'FAKEAUTH_BYPASS', False):
+            username = settings.FAKEAUTH_BYPASS
+            bypass = True
 
-                user = auth.authenticate(username=username, password=password)
-                if user:
-                    request.user = user
-                    auth.login(request, user)
+        if username is not None:
+            user = auth.authenticate(username=username, password=password,
+                                     bypass=bypass)
+            if user:
+                request.user = user
+                auth.login(request, user)

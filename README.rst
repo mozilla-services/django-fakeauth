@@ -10,3 +10,8 @@ your settings)::
     MIDDLEWARE_CLASSES.append('access.middleware.ACLMiddleware')
 
     FAKEAUTH_TOKEN = os.environ.get('FAKEAUTH_TOKEN')
+
+When doing local development, you can also ask the system to use a specific
+user, like this::
+
+    FAKEAUTH_BYPASS = 'username'
